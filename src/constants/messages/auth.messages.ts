@@ -6,6 +6,7 @@ export const PASSWORD_CREATED = 'Password created successfully.';
 export const OTP_SENT = 'OTP sent. Please check your email.';
 export const OTP_EXPIRED = 'This OTP has expired. Please request a new one.';
 export const OTP_INVALID = 'Invalid OTP. Please check and try again.';
+
 export const SHARE_RESET_LINK =
   'Password reset link has been sent to your registered email address.';
 export const ACCOUNT_NOT_FOUND_MESSAGE =
