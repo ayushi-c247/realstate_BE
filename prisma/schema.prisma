@@ -1,0 +1,179 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                Int        @id @default(autoincrement())
+  first_name        String     @db.VarChar(50)
+  last_name         String     @db.VarChar(50)
+  full_name         String     @db.VarChar(105)
+  email             String     @unique @db.VarChar(80)
+  password          String?    @db.VarChar(255)
+  role              UserRole   @default(INVESTOR)
+  status            UserStatus @default(PENDING)
+  reset_token       String?    @unique @db.VarChar(500)
+  access_token      String?    @unique @db.VarChar(500)
+  is_email_verified Boolean    @default(false)
+  password_reset_at DateTime?
+  created_by        Int?
+  last_login_date   DateTime?
+  created_at        DateTime   @default(now())
+  updated_at        DateTime   @updatedAt
+  deleted_at        DateTime?
+
+  investor_profile   InvestorProfile?
+  agent_profile      AgentProfile?
+  agent_clients      AgentClient[]      @relation("AgentUser")
+  investor_agents    AgentClient[]      @relation("InvestorUser")
+  favorites          Favorite[]
+  saved_calculations SavedCalculation[]
+
+  @@index([email, role, status], map: "users_email_role_status_idx")
+  @@map("users")
+}
+
+model InvestorProfile {
+  id                       Int                    @id @default(autoincrement())
+  user_id                  Int                    @unique
+  risk_tolerance           String?                @db.VarChar(15)
+  budget_min               Decimal?               @db.Decimal(15, 2)
+  budget_max               Decimal?               @db.Decimal(15, 2)
+  preferred_property_types Json?
+  investment_horizon       InvestmentHorizon?
+  primary_objective        PrimaryObjective?
+  ownership_structure      OwnershipStructure?
+  preferred_regions        Json?
+  tourism_preferences      Json?
+  renovation_willingness   RenovationWillingness?
+  amenities_priority       Json?
+  management_strategy      ManagementStrategy?
+  created_at               DateTime               @default(now())
+  updated_at               DateTime               @updatedAt
+
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id], map: "investor_profiles_user_id_fkey")
+  @@map("investor_profiles")
+}
+
+model AgentProfile {
+  id              Int                 @id @default(autoincrement())
+  user_id         Int                 @unique
+  company_name    String?             @db.VarChar(56)
+  contact_number  String              @db.VarChar(20)
+  license_number  String              @db.VarChar(50)
+  approval_status AgentApprovalStatus @default(PENDING)
+  created_at      DateTime            @default(now())
+  updated_at      DateTime            @updatedAt
+
+  clients AgentClient[]
+  user    User          @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id, approval_status], map: "agent_profiles_user_status_idx")
+  @@map("agent_profiles")
+}
+
+model AgentClient {
+  id             Int      @id @default(autoincrement())
+  agent_id       Int
+  investor_id    Int
+  agentProfileId Int?
+  created_at     DateTime @default(now())
+
+  agent        User          @relation("AgentUser", fields: [agent_id], references: [id], onDelete: Cascade)
+  investor     User          @relation("InvestorUser", fields: [investor_id], references: [id], onDelete: Cascade)
+  agentProfile AgentProfile? @relation(fields: [agentProfileId], references: [id])
+
+  @@unique([agent_id, investor_id], map: "agent_investor_unique")
+  @@index([agent_id], map: "agent_clients_agent_id_idx")
+  @@index([investor_id], map: "agent_clients_investor_id_idx")
+  @@map("agent_clients")
+}
+
+model Favorite {
+  id          Int      @id @default(autoincrement())
+  user_id     Int
+  property_id Int
+  created_at  DateTime @default(now())
+  user        User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, property_id], map: "favorites_user_property_unique")
+  @@index([user_id], map: "favorites_user_id_fkey")
+  @@map("favorites")
+}
+
+model SavedCalculation {
+  id                     Int      @id @default(autoincrement())
+  user_id                Int
+  purchase_price         Decimal  @db.Decimal(15, 2)
+  down_payment           Decimal  @db.Decimal(15, 2)
+  loan_term_months       Int
+  interest_rate          Decimal  @db.Decimal(5, 2)
+  expected_rental_income Decimal? @db.Decimal(15, 2)
+  appreciation_rate      Decimal? @db.Decimal(5, 2)
+  emi                    Decimal? @db.Decimal(15, 2)
+  roi                    Decimal? @db.Decimal(5, 2)
+  rental_yield           Decimal? @db.Decimal(5, 2)
+  created_at             DateTime @default(now())
+
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id], map: "saved_calculations_user_id_fkey")
+  @@map("saved_calculations")
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  PENDING
+}
+
+enum UserRole {
+  INVESTOR
+  AGENT
+  ADMIN
+}
+
+enum InvestmentHorizon {
+  SHORT
+  MEDIUM
+  LONG
+}
+
+enum PrimaryObjective {
+  YIELD
+  APPRECIATION
+  LIFESTYLE
+  DIVERSIFICATION
+}
+
+enum OwnershipStructure {
+  SOLE
+  JOINT
+  FRACTIONAL
+  LEASEBACK
+}
+
+enum RenovationWillingness {
+  TURNKEY
+  LIGHT
+  FULL
+}
+
+enum ManagementStrategy {
+  SELF
+  AGENCY
+  HYBRID
+}
+
+enum AgentApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}

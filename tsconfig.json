@@ -1,0 +1,32 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "esModuleInterop": true,
+    "target": "es6",
+    "moduleResolution": "node",
+    "sourceMap": true,
+    "strict": true,
+    "baseUrl": "./src",
+    "outDir": "./dist",
+    "paths": {
+      "@models": ["models/index.ts"],
+      "@middlewares": ["middlewares/index.ts"],
+      "@utils": ["utils/index.ts"],
+      "@emails": ["emails/index.ts"],
+      "@constants": ["constants/index.ts"],
+      "@enums": ["enums/index.ts"],
+      "@docs": ["docs/index.ts"],
+      "@customTypes": ["types/index.ts"],
+      "@config/*": ["config/*"],
+      "@routes": ["routes/index.ts"],
+      "@controllers": ["controllers/index.ts"],
+      "@services": ["services/index.ts"],
+      "@validations": ["validations/index.ts"],
+      "@helpers": ["helpers/index.ts"],
+      "@crons": ["crons/index.ts"]
+    }
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"],
+  "lib": ["es2015"]
+}
